@@ -6,7 +6,7 @@ Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed 21 May 2014 08:21:12 AM EDT
+# Last Modified: Wed 21 May 2014 08:36:41 AM EDT
 
 import bs4
 import gflags
@@ -19,13 +19,9 @@ import time
 import urllib2
 
 FLAGS = gflags.FLAGS
-gflags.DEFINE_string('board_name', '', '')
-gflags.DEFINE_integer('start_page', 0, '')
-gflags.DEFINE_integer('end_page', 0, '')
 
 def usage(cmd):
-  sys.stderr.write('Usage: %s --board_name="Gossiping" '
-      '--start_page=1 --end_page=5\n' % (cmd))
+  sys.stderr.write('Usage: %s ' % (cmd))
   return
 
 def check_args(argv):
@@ -34,18 +30,6 @@ def check_args(argv):
   except gflags.FlagsError:
     print FLAGS
 
-  if FLAGS.board_name == '':
-    usage(argv[0])
-    raise Exception('flag --board_name cannot be empty')
-
-  if FLAGS.start_page <= 0:
-    usage(argv[0])
-    raise Exception('flag --start_page must be a positive integer')
-
-  if FLAGS.end_page <= 0:
-    usage(argv[0])
-    raise Exception('flag --end_page must be a positive integer')
-
 def click_over18(response):
   br = mechanize.Browser()
   br.open(response.geturl())
@@ -53,28 +37,41 @@ def click_over18(response):
   req = form.click(name="yes")
   return br.open(req)
 
+def get_crawl_info():
+  crawl_info = [ ]
+  with open('etc/crawling.cfg') as f:
+    for line in f:
+      board_name, start_page, end_page = line.strip.split('\t')
+      crawl_info.append((board_name.strip(), int(start_page.strip()), int(end_page.strip())))
+  return crawl_info
+
 def crawl_ptt():
-  page_url = lambda n: 'http://www.ptt.cc/bbs/' + FLAGS.board_name + '/index' + str(n) + '.html'
-  post_url = lambda id: 'http://www.ptt.cc/bbs/' + FLAGS.board_name + '/' + id + '.html'
+  crawl_infos = get_crawl_info()
+  for crawl_info in crawl_infos:
+    crawl_board(crawl_info[0], crawl_info[1], crawl_info[2])
+
+def crawl_board(board_name, start_page, end_page):
+  page_url = lambda n: 'http://www.ptt.cc/bbs/' + board_name + '/index' + str(n) + '.html'
+  post_url = lambda id: 'http://www.ptt.cc/bbs/' + board_name + '/' + id + '.html'
 
   ## fetched files will be stored under the directory "./fetched/BOARDNAME/"
-  path = os.path.join('fetched', FLAGS.board_name)
+  path = os.path.join('fetched', board_name)
   try:
     os.makedirs(path)
   except:
     sys.stderr.write('Warning: "%s" already existed\n' % path)
   os.chdir(path)
 
-  sys.stdout.write('Crawling "%s" ...\n' % FLAGS.board_name)
+  sys.stdout.write('Crawling "%s" ...\n' % board_name)
   ## determine the total number of pages for this board
   sys.stdout.write('%s' % page_url(1))
   page = bs4.BeautifulSoup(urllib2.urlopen(page_url(1)).read())
-  sys.stdout.write('Total number of pages: %d\n' % (FLAGS.end_page - FLAGS.start_page + 1))
+  sys.stdout.write('Total number of pages: %d\n' % (end_page - start_page + 1))
 
   ## a mapping from post_id to number of pushes
   num_pushes = dict()
 
-  for n in xrange(FLAGS.start_page, FLAGS.end_page + 1):
+  for n in xrange(start_page, end_page + 1):
     try:
       response = urllib2.urlopen(page_url(n))
       sys.stdout.write('page_url(n): %s\n' % page_url(n))
