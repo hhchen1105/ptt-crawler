@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 '''
-Desc
-
+Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 '''
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed 21 May 2014 05:03:52 AM EDT
+# Last Modified: Wed 21 May 2014 05:10:49 AM EDT
 
 import bs4
 import gflags
@@ -62,7 +61,6 @@ def crawl_ptt():
   ## determine the total number of pages for this board
   sys.stdout.write('%s' % page_url(1))
   page = bs4.BeautifulSoup(urllib2.urlopen(page_url(1)).read())
-  #num_pages = int(re.findall(' \d+ ', page.find(id='prodlist').find('h2').contents[-1])[0])
   sys.stdout.write('Total number of pages: %d\n' % (FLAGS.end_page - FLAGS.start_page + 1))
 
   ## a mapping from post_id to number of pushes
