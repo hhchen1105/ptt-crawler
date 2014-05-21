@@ -6,7 +6,7 @@ Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed 21 May 2014 05:10:49 AM EDT
+# Last Modified: Wed 21 May 2014 05:52:18 AM EDT
 
 import bs4
 import gflags
@@ -45,6 +45,13 @@ def check_args(argv):
     usage(argv[0])
     raise Exception('flag --end_page must be a positive integer')
 
+def click_over18(response):
+  br = mechanize.Browser()
+  br.open(response.geturl())
+  form = list(br.forms())[0]
+  req = form.click(name="yes")
+  return br.open(req)
+
 def crawl_ptt():
   page_url = lambda n: 'http://www.ptt.cc/bbs/' + FLAGS.board_name + '/index' + str(n) + '.html'
   post_url = lambda id: 'http://www.ptt.cc/bbs/' + FLAGS.board_name + '/' + id + '.html'
@@ -71,11 +78,7 @@ def crawl_ptt():
       response = urllib2.urlopen(page_url(n))
       sys.stdout.write('page_url(n): %s' % page_url(n))
       if response.geturl().startswith('http://www.ptt.cc/ask/over18'):
-        br = mechanize.Browser()
-        br.open(response.geturl())
-        form = list(br.forms())[0]
-        req = form.click(name="yes")
-        response = br.open(req)
+        response = click_over18(response)
 
       page = bs4.BeautifulSoup(response.read())
     except:
@@ -94,12 +97,17 @@ def crawl_ptt():
       post_file = open(post_id, 'w')
 
       try:
-        post = bs4.BeautifulSoup(urllib2.urlopen(post_url(post_id)).read())
+        response = urllib2.urlopen(post_url(post_id))
+        if response.geturl().startswith('http://www.ptt.cc/ask/over18'):
+          response = click_over18(response)
+        post = bs4.BeautifulSoup(response.read())
       except:
         sys.stderr.write('Error occured while fetching %s\n' % post_url(post_id))
         continue
 
-      if post.find(id='main-content') is None:  continue
+      if post.find(id='main-content') is None:
+        print 'iiiii'
+        continue
       for content in post.find(id='main-content').contents:
         ## u'\u25c6' is the starting character in the 'source ip line',
         ## which for instance looks like "u'\u25c6' From: 111.253.164.108"
