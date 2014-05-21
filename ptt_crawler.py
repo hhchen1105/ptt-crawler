@@ -6,13 +6,14 @@ Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed 21 May 2014 05:52:18 AM EDT
+# Last Modified: Wed 21 May 2014 08:21:12 AM EDT
 
 import bs4
 import gflags
 import json
 import mechanize
 import os
+import random
 import sys
 import time
 import urllib2
@@ -76,7 +77,7 @@ def crawl_ptt():
   for n in xrange(FLAGS.start_page, FLAGS.end_page + 1):
     try:
       response = urllib2.urlopen(page_url(n))
-      sys.stdout.write('page_url(n): %s' % page_url(n))
+      sys.stdout.write('page_url(n): %s\n' % page_url(n))
       if response.geturl().startswith('http://www.ptt.cc/ask/over18'):
         response = click_over18(response)
 
@@ -106,20 +107,22 @@ def crawl_ptt():
         continue
 
       if post.find(id='main-content') is None:
-        print 'iiiii'
         continue
+      # TODO: save article metadata
+      #for article_meta in post.find_all('div', 'article-metaline'):
+      #  post_file.write(article_meta.contents[0].contents[0].encode('utf-8') + ' : ' + article_meta.contents[2].contents[0].encode('utf-8') + ' : ' + article_meta.contents[3].contents[0].encode('utf-8') + '\n')
       for content in post.find(id='main-content').contents:
         ## u'\u25c6' is the starting character in the 'source ip line',
         ## which for instance looks like "u'\u25c6' From: 111.253.164.108"
         if type(content) is bs4.element.NavigableString and content[0] != u'\u25c6':
           post_file.write(content.encode('utf-8'))
       for push in post.find_all('div', 'push'):
-        post_file.write(push.contents[1].contents[0].encode('utf-8') + push.contents[2].contents[0].encode('utf-8'))
+        post_file.write(push.contents[0].contents[0].encode('utf-8') + ' ' + push.contents[1].contents[0].encode('utf-8') + push.contents[2].contents[0].encode('utf-8') + '@' + push.contents[3].contents[0].encode('utf-8') + '\n')
 
       post_file.close()
 
-      ## delay for a little while in fear of getting blocked
-      time.sleep(0.1)
+      ## delay for a little while (0 - 2 sec) in fear of getting blocked
+      time.sleep(2 * random.random())
 
   ## dump the number of pushes mapping to the file 'num_pushes_json'
   num_pushes_file = open('num_pushes_json', 'w')
