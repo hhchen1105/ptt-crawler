@@ -6,7 +6,7 @@ Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed May 28 21:06:54 2014
+# Last Modified: Wed May 28 21:27:49 2014
 
 import gflags
 import json
@@ -109,8 +109,9 @@ def crawl_board(board_name, start_page, end_page):
         post_date_time = post.xpath('body/div/div/div/span')[8].text
         post_contents_ele = post.xpath('body/div/div')[2]
         post_contents = ''
-        for t in post_contents_ele.itertext():
-          post_contents += t
+        for i, t in enumerate(post_contents_ele.itertext()):
+          if i > 8:
+            post_contents += t
 
         post_file.write(post_title.encode('utf-8') + '\n')
         post_file.write(post_author.encode('utf-8') + '\n')
@@ -119,8 +120,8 @@ def crawl_board(board_name, start_page, end_page):
 
         post_file.close()
 
-        ## delay for a little while (0 - 2 sec) in fear of getting blocked
-        time.sleep(2 * random.random())
+        ## delay for a little while (0 - 3 sec) in fear of getting blocked
+        time.sleep(3 * random.random())
 
   ## dump the number of pushes mapping to the file 'num_pushes_json'
   num_pushes_file = open('num_pushes_json', 'w')
