@@ -6,7 +6,7 @@ Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed May 28 10:54:39 2014
+# Last Modified: Wed May 28 21:06:54 2014
 
 import gflags
 import json
@@ -65,7 +65,6 @@ def crawl_board(board_name, start_page, end_page):
   sys.stdout.write('Crawling "%s" ...\n' % board_name)
   ## determine the total number of pages for this board
   sys.stdout.write('%s\n' % page_url(1))
-  #page = bs4.BeautifulSoup(urllib2.urlopen(page_url(1)).read())
   sys.stdout.write('Total number of pages: %d\n' % (end_page - start_page + 1))
 
   ## a mapping from post_id to number of pushes
@@ -78,7 +77,6 @@ def crawl_board(board_name, start_page, end_page):
       if response.geturl().startswith('http://www.ptt.cc/ask/over18'):
         response = click_over18(response)
 
-      #page = bs4.BeautifulSoup(response.read())
       page = letree.HTML(response.read())
     except:
       sys.stderr.write('Error occured while fetching %s\n' % page_url(n))
@@ -97,14 +95,12 @@ def crawl_board(board_name, start_page, end_page):
         sys.stdout.write('Fetching %s ...\n' % post_id)
         post_title = ele.xpath('div/a')[0].text
         post_author = ele.xpath('div/div')[1].text
-        #print post_author.encode('utf-8'), ':', post_title.encode('utf-8')
 
         post_file = open(post_id, 'w')
         try:
           response = urllib2.urlopen(post_url(post_id))
           if response.geturl().startswith('http://www.ptt.cc/ask/over18'):
             response = click_over18(response)
-          #post = bs4.BeautifulSoup(response.read())
           post = letree.HTML(response.read())
         except:
           sys.stderr.write('Error occured while fetching %s\n' % post_url(post_id))
