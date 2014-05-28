@@ -6,9 +6,8 @@ Modified from bruce3557/PTT-Crawler: https://github.com/bruce3557/PTT-Crawler
 
 # Hung-Hsuan Chen <hhchen@psu.edu>
 # Creation Date : 05-21-2014
-# Last Modified: Wed May 28 10:40:08 2014
+# Last Modified: Wed May 28 10:54:39 2014
 
-import bs4
 import gflags
 import json
 from lxml import etree as letree
